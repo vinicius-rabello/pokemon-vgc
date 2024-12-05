@@ -135,9 +135,38 @@ WITH with_event_type AS (
 	FROM corrected_pokemon_ranking r
 	LEFT JOIN corrected_pivoted_with_times_won t
 	ON r.pokemon_id = t.pokemon_id
+), final_ranking_with_gen AS (
+	SELECT 
+		*,
+		CASE
+			WHEN pokemon_id IS NULL THEN NULL
+			WHEN pokemon_id <= 151 THEN 1
+			WHEN pokemon_id <= 251 THEN 2
+			WHEN pokemon_id <= 386 THEN 3
+			WHEN pokemon_id <= 493 THEN 4
+			WHEN pokemon_id <= 649 THEN 5
+			WHEN pokemon_id <= 721 THEN 6
+			WHEN pokemon_id <= 809 THEN 7
+			WHEN pokemon_id <= 905 THEN 8
+			ELSE 9 END AS gen
+	FROM final_ranking
 )
 INSERT INTO ranking
-SELECT fr.*, p.img_url FROM final_ranking fr
+SELECT
+	fr.pokemon_id,
+	fr.pokemon_name,
+	fr.type_1,
+	fr.type_2,
+	fr.greatness_metric,
+	fr.gen,
+	fr.longevity,
+	fr.times_won_world,
+	fr.times_won_international,
+	fr.times_won_national,
+	fr.times_won_regional,
+	fr.times_won_other,
+	p.img_url
+FROM final_ranking_with_gen fr
 LEFT JOIN pokemon p ON fr.pokemon_id = p.pokemon_id
 WHERE fr.pokemon_id IS NOT NULL
 ORDER BY greatness_metric DESC

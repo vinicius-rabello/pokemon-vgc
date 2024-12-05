@@ -1,8 +1,3 @@
-DROP TABLE pokemon;
-DROP TABLE events;
-DROP TABLE pokemon_stats;
-DROP TABLE ranking;
-
 CREATE TABLE pokemon (
     pokemon_id INTEGER,
     pokemon_name TEXT,
@@ -35,9 +30,10 @@ CREATE TABLE pokemon_stats (
 CREATE TABLE ranking (
     pokemon_id INTEGER,
     pokemon_name TEXT,
-    greatness_metric NUMERIC,
     type_1 TEXT,
     type_2 TEXT,
+	greatness_metric NUMERIC,
+	gen INTEGER,
     longevity BIGINT,
     times_won_world NUMERIC,
     times_won_international NUMERIC,
