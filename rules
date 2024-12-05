@@ -1,11 +1,12 @@
-worlds = 7pts
-internationals = 5pts
-nationals = 3pts
-regionals, special, other = 1pt
+worlds = x5
+internationals = x4
+nationals = x3
+regionals = x2
+special, other = x1
 
-winner = x4
-runner-up = 2x
-top8 = 1x
+winner = 7pts
+runner-up = 4pts
+top8 = 1pt
 other = 0x
 
 longevity bonus = x 1 + longevity/10 %
