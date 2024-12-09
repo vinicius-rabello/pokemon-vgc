@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 import psycopg2
 
 # parsing the webpage with all the events
+print("Parsing the webpage with all events...")
 url = "https://limitlessvgc.com/events/?time=all&type=all&region=all&format=all"
 page = requests.get(url)
 soup = BeautifulSoup(page.content, "html.parser")
@@ -36,10 +37,12 @@ def get_row_data(row):
   return row
 
 # defines the headers (column names) and extracts data from all the rows in the table
+print("Extracting table rows...")
 headers = ['date', 'event_country', 'name', 'num_players', 'winner', 'event_id']
 rows = [get_row_data(tr) for tr in tbody.findAll("tr")]
 
 # creates a tournaments_df with the data extracted
+print("Creating tournaments DataFrame...")
 tournaments_df = pd.DataFrame(data=rows, columns=headers)
 
 # gets a list of all event urls from our tournaments_df
@@ -75,17 +78,22 @@ def build_event_df(event_url):
   return df
 
 # iterates over event_url_list, creates a dataframe for every event and concatenates all of them
+print("Building event-specific DataFrames...")
 def build_pokemon_stats_df(event_url_list):
   df = build_event_df(event_url_list[0])
+  print(f"Processed: {event_url_list[0]}")
   for event_url in tqdm(event_url_list[1:]):
     df = pd.concat([df, build_event_df(event_url)], ignore_index=True)
+    print(f"Processed: {event_url}")
   return df
 
 # builds pokemon_stats_df
+print("Generating pokemon_stats DataFrame...")
 pokemon_stats_df = build_pokemon_stats_df(event_url_list)
 
 # we explode the team column (instead of having a team column with [pikachu, charmandar, ...]
 # it creates a row for each of the pokemon)
+print("Exploding team column...")
 pokemon_stats_df = pokemon_stats_df.explode('team') # explode the team column
 pokemon_stats_df.reset_index(drop=True, inplace=True) # reset the indexes
 pokemon_stats_df.rename(columns={"team": "pokemon"}, inplace=True) # rename the column from team to pokemon
@@ -99,12 +107,15 @@ def get_ruleset_from_event_id(event_id):
 
   infobox = soup.find(class_="infobox-text")
   format = infobox.find("a").text
+  print(f"Fetched ruleset for event_id {event_id}")
   return format
 
 # apply that function, creating a column format from the event_ids
+print("Fetching ruleset for events...")
 tournaments_df['format'] = tournaments_df['event_id'].apply(lambda id: get_ruleset_from_event_id(id))
 
 # remove rows with empty format
+print("Cleaning and mapping formats...")
 tournaments_df = tournaments_df.loc[tournaments_df['format'] != ""]
 
 # this dict maps the format to the corresponding generation
@@ -137,6 +148,7 @@ format_to_gen_dict = {
 tournaments_df['format'] = tournaments_df['format'].apply(lambda x: format_to_gen_dict[x])
 
 # now we'll need a dataframe containing all pokemon, here we parse the bulbapedia page containing a list of all pokemon
+print("Parsing the webpage with all pokemon...")
 url = "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_name"
 page = requests.get(url)
 soup = BeautifulSoup(page.content, "html.parser")
@@ -166,9 +178,11 @@ def build_pokemon_df():
     return pokemon_df
 
 # creates the pokemon_df
+print("Building pokemon DataFrame...")
 pokemon_df = build_pokemon_df()
 
 # orders and renames the columns from tournaments_df to match our psql table
+print("Cleaning and formatting DataFrames...")
 tournaments_df = tournaments_df[['event_id', 'date', 'event_country', 'name', 'num_players', 'winner', 'format']]
 tournaments_df = tournaments_df.rename(columns={"date": "event_date", "name": "event_name"})
 
@@ -180,13 +194,14 @@ pokemon_stats_df = pokemon_stats_df.drop_duplicates(subset=["event_id", "placeme
 pokemon_df = pokemon_df.rename(columns={"name": "pokemon_name"})
 
 # access env variables
+print("Connecting to database and populating tables...")
 load_dotenv()
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
-    "user": os.getenv("PSQL_USER"),
-    "password": os.getenv("PSQL_PASSWORD"),
-    "host": os.getenv("HOST", "localhost"),
-    "port": int(os.getenv("PORT", "5432"))
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "host": os.getenv("DB_HOST", "postgres"),
+    "port": int(os.getenv("DB_PORT", "5432"))
 }
 
 # connects to postgres db
