@@ -43,3 +43,19 @@ CREATE TABLE ranking (
     img_url TEXT,
     PRIMARY KEY(pokemon_id)
 );
+
+CREATE TYPE event_type AS ENUM (
+	'world',
+	'international',
+	'national',
+	'regional',
+	'special',
+	'other'
+);
+
+CREATE TYPE placement_type AS ENUM (
+	'winner',
+	'runner-up',
+	'top8',
+	'other'
+);

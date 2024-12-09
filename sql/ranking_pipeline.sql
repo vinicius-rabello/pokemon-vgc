@@ -1,21 +1,3 @@
-DROP TYPE event_type;
-CREATE TYPE event_type AS ENUM (
-	'world',
-	'international',
-	'national',
-	'regional',
-	'special',
-	'other'
-);
-
-DROP TYPE placement_type;
-CREATE TYPE placement_type AS ENUM (
-	'winner',
-	'runner-up',
-	'top8',
-	'other'
-);
-
 WITH with_event_type AS (
 	SELECT *,
 		CASE
