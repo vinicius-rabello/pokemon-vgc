@@ -196,12 +196,17 @@ pokemon_df = pokemon_df.rename(columns={"name": "pokemon_name"})
 # access env variables
 print("Connecting to database and populating tables...")
 load_dotenv()
+
+# define sslmode
+sslmode = "require" if os.getenv("DB_SSL", "false").lower() == "true" else "disable"
+
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST", "postgres"),
-    "port": int(os.getenv("DB_PORT", "5432"))
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "sslmode": sslmode
 }
 
 # connects to postgres db
